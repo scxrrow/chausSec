@@ -1,0 +1,13 @@
+package com.chausSec.chausSec;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class ChausSecApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
