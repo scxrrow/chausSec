@@ -1,26 +1,27 @@
 #!/usr/bin/python3
-
 from scapy.all import sniff
-from scapy.layers.inet import IP, TCP, UDP, ICMP
+from scapy.layers.inet import IP
+
+PROTO_MAP = {
+    1: "ICMP",
+    6: "TCP",
+    17: "UDP",
+}
 
 
 def packet_callback(packet):
-    if IP in packet:
-        src = packet[IP].src
-        dst = packet[IP].dst
+    if IP not in packet:
+        return
 
-        protocol = "OTHER"
+    ip = packet[IP]
 
-        if ICMP in packet:
-            protocol = "ICMP"
+    src = ip.src
+    dst = ip.dst
 
-        elif TCP in packet:
-            protocol = "TCP"
+    proto_num = int(ip.proto)
+    protocol = PROTO_MAP.get(proto_num, f"OTHER({proto_num})")
 
-        elif UDP in packet:
-            protocol = "UDP"
-
-        print(f"{src} -> {dst} ({protocol})")
+    print(f"{src} -> {dst} ({protocol})")
 
 
 def main():
