@@ -13,5 +13,7 @@ Nous avons décidé de développer le sniffer de packet dans le langage de progr
 Nous avons avions plusieurs solution possible pour le développement de RequinCable. Nous avons décidé de partir sur Scapy.
 
 ## Architecture
+le fichier main.py est le point d'entrée de RequinCable. C'est le fichier à éxecuter.
 
-le fichier main.py est le point d'entrée de RequinCable. C'est le fichier à éxecuter 
+## Execution
+Il est pour le moment nécessaire d'exécuter le fichier main.py avec sudo.
