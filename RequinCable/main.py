@@ -74,7 +74,7 @@ def packet_to_event(packet) -> dict | None:
     service = detect_service(protocol, src_port, dst_port)
 
     event = {
-        "ts": iso_utc_from_epoch(float(packet.time)),
+        "timestamp": iso_utc_from_epoch(float(packet.time)),
         "src_ip": src_ip,
         "dst_ip": dst_ip,
         "proto": protocol,
