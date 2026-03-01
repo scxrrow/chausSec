@@ -15,7 +15,7 @@ Nous avons avions plusieurs solution possible pour le développement de RequinCa
 ## Fonctionnalités actuelles
 - Capture des paquets IPv4 en temps réel
 - Extraction des champs suivants :
-  - timestamp (format ISO 8601 UTC)
+  - timestamp (format epoch plus simple à lire pour l'ordinateur)
   - adresse IP source
   - adresse IP destination
   - protocole (TCP, UDP, ICMP, etc.)
