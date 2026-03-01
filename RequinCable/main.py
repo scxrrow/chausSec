@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from scapy.all import sniff
 from scapy.layers.inet import IP, TCP, UDP
+import socket
 
 # Mapping des numéros de protocole
 PROTO_MAP = {
@@ -8,6 +9,27 @@ PROTO_MAP = {
     6: "TCP",
     17: "UDP",
 }
+
+
+def detect_service(protocol: str, src_port: int | None, dst_port: int | None) -> str | None:
+    """
+    Résout le nom du service associé à un port. 
+    Le port destination est testé en priorité car il correspond généralement au service cible.
+    """
+    if protocol not in ("TCP", "UDP"):
+        return None
+
+    proto = protocol.lower()
+
+    for port in (dst_port, src_port):
+        if port is None:
+            continue
+        try:
+            return socket.getservbyport(port, proto).upper()
+        except OSError:
+            pass
+
+    return None
 
 
 def packet_callback(packet):
@@ -38,8 +60,13 @@ def packet_callback(packet):
         src_port = int(transport.sport)
         dst_port = int(transport.dport)
 
+    service = detect_service(protocol, src_port, dst_port)
+
     if src_port is not None and dst_port is not None:
-        print(f"{src}:{src_port} -> {dst}:{dst_port} ({protocol})")
+        if service:
+            print(f"{src}:{src_port} -> {dst}:{dst_port} ({protocol}) [{service}]")
+        else:
+            print(f"{src}:{src_port} -> {dst}:{dst_port} ({protocol})")
     else:
         print(f"{src} -> {dst} ({protocol})")
 
@@ -51,5 +78,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# TODO: ajouter la détection du service (SSH/TCP)
