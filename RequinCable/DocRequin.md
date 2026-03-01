@@ -12,8 +12,16 @@ Nous avons décidé de développer le sniffer de packet dans le langage de progr
 ### Choix de la librairie
 Nous avons avions plusieurs solution possible pour le développement de RequinCable. Nous avons décidé de partir sur Scapy.
 
-## Architecture
-le fichier main.py est le point d'entrée de RequinCable. C'est le fichier à éxecuter.
-
-## Execution
-Il est pour le moment nécessaire d'exécuter le fichier main.py avec sudo.
+## Fonctionnalités actuelles
+- Capture des paquets IPv4 en temps réel
+- Extraction des champs suivants :
+  - timestamp (format ISO 8601 UTC)
+  - adresse IP source
+  - adresse IP destination
+  - protocole (TCP, UDP, ICMP, etc.)
+  - port source
+  - port destination
+  - service associé (résolution via la base système)
+  - taille du paquet
+- Conversion en événements JSON structurés
+- Sortie au format JSON Lines
