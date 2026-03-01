@@ -43,7 +43,7 @@ def detect_service(protocol: str, src_port: int | None, dst_port: int | None) ->
 
     return None
 
-
+# Pas utilisée
 def iso_utc_from_epoch(t: float) -> str:
     """
     Convertit un timestamp epoch en format ISO 8601 UTC avec millisecondes.
@@ -74,7 +74,7 @@ def packet_to_event(packet) -> dict | None:
     service = detect_service(protocol, src_port, dst_port)
 
     event = {
-        "ts": iso_utc_from_epoch(float(packet.time)),
+        "timestamp": float(packet.time),
         "src_ip": src_ip,
         "dst_ip": dst_ip,
         "proto": protocol,
