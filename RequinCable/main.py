@@ -52,4 +52,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: ajouter la détection du service basée sur les ports (ex: 22 → SSH, 80 → HTTP)
+# TODO: ajouter la détection du service (SSH/TCP)
