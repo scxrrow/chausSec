@@ -1,5 +1,5 @@
 # RequinCable
-Sniffer de packets pour le projet ChausSec.é
+Sniffer de packets pour le projet ChausSec.
 
 ## Présentation
 RequinCable est le module de capture réseau de l’infrastructure ChausSec. Il agit comme une sonde passive capable de capturer, analyser et structurer les flux réseau en temps réel.
