@@ -1,0 +1,112 @@
+networks:
+  chaussec-net:
+    driver: bridge
+services:
+
+  influxdb:
+    image: influxdb:latest
+    container_name: chaussec-influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    networks:
+      - chaussec-net
+
+  mongodb:
+    image: mongo:4.4
+    container_name: chaussec-mongo
+    networks:
+      - chaussec-net
+
+  opensearch: 
+    image: opensearchproject/opensearch:2.11.0
+    container_name: chaussec-opensearch
+    environment:
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "bootstrap.memory_lock=true"
+      - "discovery.type=single-node"
+      - "action.auto_create_index=false"
+      - "plugins.security.disabled=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - chaussec-net
+
+  graylog:
+    image: graylog/graylog:5.2
+    container_name: chaussec-graylog
+    environment:
+      - GRAYLOG_NODE_ID_FILE=/usr/share/graylog/data/config/node-id
+      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper123456789 # 16 char min
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918 # admin
+      - GRAYLOG_HTTP_BIND_ADDRESS=0.0.0.0:9000
+      - GRAYLOG_ELASTICSEARCH_HOSTS=http://opensearch:9200
+      - GRAYLOG_MONGODB_URI=mongodb://mongodb:27017/graylog
+    depends_on:
+      - mongodb
+      - opensearch
+    ports:
+      - "9000:9000"
+      - "12201:12201/udp"
+    networks:
+      - chaussec-net
+
+  suricata:
+    image: jasonish/suricata:latest
+    container_name: chaussec-suricata
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - ./suricata/logs:/var/log/suricata
+    
+
+  requincable:
+    build: ./requincable
+    container_name: chaussec-requincable
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - chaussec-backend
+
+  chaussec-backend:
+    build: ./backend
+    container_name: chaussec-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./suricata/logs:/app/suricata_logs:ro
+    depends_on:
+      - influxdb
+      - graylog
+    networks:
+      - chaussec-net
+
+  # chaussec-ui:
+  #   build: ./frontend
+  #   container_name: chaussec-ui
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - chaussec-backend
+  #   networks:
+  #     - chaussec-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: chaussec-grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - influxdb
+    networks:
+      - chaussec-net
+
+volumes:
+  influxdb_data:
