@@ -1,0 +1,6 @@
+FROM openjdk:25-ea-slim
+
+COPY target/*.jar chausSec-backend.jar
+
+ENTRYPOINT [ "java", "-jar", "chausSec-backend.jar" ]
+
