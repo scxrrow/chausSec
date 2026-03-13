@@ -109,4 +109,3 @@ if __name__ == "__main__":
     main()
 
 # TODO: Division des fonctions en sous fichiers
-# TODO: Filtre BFP

@@ -1,0 +1,9 @@
+[project]
+name = "requincable"
+version = "0.1.0"
+description = "Sniffeur réseau pour chausSec"
+readme = "DocRequin.md"
+requires-python = ">=3.12"
+dependencies = [
+    "scapy>=2.7.0",
+]
