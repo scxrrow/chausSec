@@ -1,7 +1,9 @@
 [project]
 name = "requincable"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "Sniffeur réseau pour chausSec"
+readme = "DocRequin.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "scapy>=2.7.0",
+]
