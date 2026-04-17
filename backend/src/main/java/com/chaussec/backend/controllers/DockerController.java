@@ -1,4 +1,4 @@
-package com.chaussec.backend;
+package com.chaussec.backend.controllers;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

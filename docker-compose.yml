@@ -12,6 +12,17 @@ services:
       - influxdb_data:/var/lib/influxdb
     networks:
       - chaussec-net
+    
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: chaussec-portainer
+    ports:
+      - "9001:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - chaussec-net
 
   mongodb:
     image: mongo:4.4
@@ -55,7 +66,7 @@ services:
       - chaussec-net
 
   suricata:
-    image: jasonish/suricata:latest
+    image: openeuler/suricata:latest
     container_name: chaussec-suricata
     network_mode: "host"
     cap_add:
@@ -66,20 +77,20 @@ services:
       - ./suricata/logs:/var/log/suricata
     
 
-  requincable:
-    build: ./requincable
-    container_name: chaussec-requincable
-    network_mode: "host"
-    cap_add:
-      - NET_ADMIN
-    depends_on:
-      - chaussec-backend
+#  requincable:
+#    build: ./requincable
+#    container_name: chaussec-requincable
+#    network_mode: "host"
+#    cap_add:
+#      - NET_ADMIN
+#    depends_on:
+#      - chaussec-backend
 
   chaussec-backend:
-    build: ./backend
+    image: chaussec:latest
     container_name: chaussec-backend
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
       - ./suricata/logs:/app/suricata_logs:ro
     depends_on:
@@ -110,3 +121,4 @@ services:
 
 volumes:
   influxdb_data:
+  portainer_data:
