@@ -12,19 +12,19 @@ import com.chaussec.backend.models.NmapModel;
 import com.chaussec.backend.services.NmapService;
 
 @RestController
-@RequestMapping("/chaussec/nmap") // Toutes les routes commenceront par /api/nmap
+@RequestMapping("/chaussec/nmap") 
 public class NmapController {
 
-    @Autowired // Injecte automatiquement le Service créé plus haut
+    @Autowired 
     private NmapService nmapService;
 
     @PostMapping("/scan")
     public ResponseEntity<NmapModel> startScan(@RequestParam String target) {
         try {
             NmapModel result = nmapService.executeScan(target);
-            return ResponseEntity.ok(result); // Renvoie 200 OK avec le JSON
+            return ResponseEntity.ok(result); 
         } catch (IOException e) {
-            return ResponseEntity.status(500).build(); // En cas d'erreur système
+            return ResponseEntity.status(500).build(); 
         }
     }
 }

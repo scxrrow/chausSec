@@ -87,7 +87,7 @@ services:
 #      - chaussec-backend
 
   chaussec-backend:
-    image: chaussec:latest
+    image: scxrrow/backend:latest
     container_name: chaussec-backend
     ports:
       - "8080:8080"
