@@ -1,124 +1,133 @@
-networks:
-  chaussec-net:
-    driver: bridge
+version: '3.8'
+
 services:
-
-  influxdb:
-    image: influxdb:latest
-    container_name: chaussec-influxdb
-    ports:
-      - "8086:8086"
-    volumes:
-      - influxdb_data:/var/lib/influxdb
-    networks:
-      - chaussec-net
-    
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: chaussec-portainer
-    ports:
-      - "9001:9000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    networks:
-      - chaussec-net
-
+  # ==========================================
+  # --- PARTIE SOC (SÉCURITÉ ET LOGS) ---
+  # ==========================================
+  
   mongodb:
-    image: mongo:4.4
-    container_name: chaussec-mongo
-    networks:
-      - chaussec-net
-
-  opensearch: 
-    image: opensearchproject/opensearch:2.11.0
-    container_name: chaussec-opensearch
+    image: mongo:latest
+    container_name: chausec-mongodb
+    restart: unless-stopped
     environment:
-      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "bootstrap.memory_lock=true"
-      - "discovery.type=single-node"
-      - "action.auto_create_index=false"
-      - "plugins.security.disabled=true"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      MONGO_INITDB_ROOT_USERNAME: superAdmin
+      MONGO_INITDB_ROOT_PASSWORD: Chaussec.123
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
     networks:
-      - chaussec-net
+      - chaussec_net
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: chausec-opensearch
+    restart: unless-stopped
+    environment:
+      - cluster.name=chausec-cluster
+      - node.name=chausec-node1
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - chaussec_net
 
   graylog:
-    image: graylog/graylog:5.2
+    image: graylog/graylog:7.1
     container_name: chaussec-graylog
+    restart: unless-stopped
     environment:
-      - GRAYLOG_NODE_ID_FILE=/usr/share/graylog/data/config/node-id
-      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper123456789 # 16 char min
-      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918 # admin
-      - GRAYLOG_HTTP_BIND_ADDRESS=0.0.0.0:9000
+      - GRAYLOG_PASSWORD_SECRET=UnSecretVraimentTresLongPourChaussec2026!
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
       - GRAYLOG_ELASTICSEARCH_HOSTS=http://opensearch:9200
-      - GRAYLOG_MONGODB_URI=mongodb://mongodb:27017/graylog
+      - GRAYLOG_MONGODB_URI=mongodb://superAdmin:Chaussec.123@mongodb:27017/graylog?authSource=admin
+    ports:
+      - "9000:9000"
+      - "1514:1514/udp"
+      - "5044:5044/tcp"
     depends_on:
       - mongodb
       - opensearch
-    ports:
-      - "9000:9000"
-      - "12201:12201/udp"
     networks:
-      - chaussec-net
+      - chaussec_net
+
+  # ==========================================
+  # --- PARTIE SONDE ET COLLECTE ---
+  # ==========================================
 
   suricata:
-    image: openeuler/suricata:latest
+    image: jasonish/suricata:6.0.10
     container_name: chaussec-suricata
-    network_mode: "host"
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
+    restart: unless-stopped
+    network_mode: host
+    command: -i eth0
     volumes:
-      - ./suricata/logs:/var/log/suricata
-    
+      - suricata_logs:/var/log/suricata
 
-#  requincable:
-#    build: ./requincable
-#    container_name: chaussec-requincable
-#    network_mode: "host"
-#    cap_add:
-#      - NET_ADMIN
-#    depends_on:
-#      - chaussec-backend
-
-  chaussec-backend:
-    image: scxrrow/backend:latest
-    container_name: chaussec-backend
-    ports:
-      - "8080:8080"
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.12.1
+    container_name: chaussec-filebeat
+    restart: unless-stopped
+    user: root 
+    command: ["--strict.perms=false"]
     volumes:
-      - ./suricata/logs:/app/suricata_logs:ro
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - suricata_logs:/var/log/suricata:ro
     depends_on:
-      - influxdb
       - graylog
     networks:
-      - chaussec-net
+      - chaussec_net
 
-  # chaussec-ui:
-  #   build: ./frontend
-  #   container_name: chaussec-ui
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - chaussec-backend
-  #   networks:
-  #     - chaussec-net
+  # ==========================================
+  # --- PARTIE SUPERVISION ET DASHBOARDS ---
+  # ==========================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: chaussec-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - chaussec_net
 
   grafana:
     image: grafana/grafana:latest
     container_name: chaussec-grafana
+    restart: unless-stopped
     ports:
-      - "3001:3000"
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
-      - influxdb
+      - prometheus
+    volumes:
+      # Injection automatique des sources de données
+      - ./config/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      # Injection automatique du provider de tableaux de bord
+      - ./config/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      # Injection automatique du fichier JSON du tableau de bord
+      - ./config/chaussec-dashboard.json:/etc/grafana/provisioning/dashboards/chaussec-dashboard.json:ro
     networks:
-      - chaussec-net
+      - chaussec_net
+
+# ==========================================
+# --- VOLUMES ET RÉSEAUX ---
+# ==========================================
 
 volumes:
-  influxdb_data:
-  portainer_data:
+  mongodb_data:
+  opensearch_data:
+  suricata_logs:
+
+networks:
+  chaussec_net:
+    driver: bridge
