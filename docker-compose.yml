@@ -118,6 +118,14 @@ services:
       - ./config/chaussec-dashboard.json:/etc/grafana/provisioning/dashboards/chaussec-dashboard.json:ro
     networks:
       - chaussec_net
+    
+  chaussec-api:
+    image: scxrrow/backend:latest
+    container_name: chaussec-api
+    ports:
+      - "5050:5050"
+    networks:
+      - chaussec_net
 
 # ==========================================
 # --- VOLUMES ET RÉSEAUX ---
